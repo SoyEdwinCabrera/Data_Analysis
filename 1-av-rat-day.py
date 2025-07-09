@@ -3,10 +3,13 @@ import pandas
 from datetime import datetime
 from pytz import utc
 import matplotlib.pyplot as plt
-data = pandas.read_csv("reviews.csv", parse_dates=['Timestamp'])
-data['Day'] = data['Timestamp'].dt.date
-day_average = data.groupby('Day')['Rating'].mean()
 
+# Carga los datos desde un archivo CSV y convierte la columna 'Timestamp' a formato de fecha
+data = pandas.read_csv("reviews.csv", parse_dates=['Timestamp'])
+data['Day'] = data['Timestamp'].dt.date  # Extrae solo la fecha (sin hora)
+day_average = data.groupby('Day')['Rating'].mean()  # Calcula el promedio de calificaciones por día
+
+# Definición del gráfico en formato JSON con el formato de manejo de https://www.highcharts.com/
 chart_def = """
 {
     chart: {
@@ -70,17 +73,24 @@ chart_def = """
 }
 """
 
+# Función principal que define la aplicación web
 def app():
+    # Crea una página Quasar
     wp = jp.QuasarPage()
+    
+    # Agrega un encabezado y una descripción
     h1 = jp.QDiv(a=wp, text="Analysis of Course Reviews", classes="text-h3 text-center q-pa-md")
     p1 = jp.QDiv(a=wp, text="These graphs represent course review analysis.")
+    
+    # Agrega un gráfico interactivo basado en HighCharts
     hc = jp.HighCharts(a=wp, options=chart_def)
-    hc.options.title.text = 'Average Rating by Day'
-
-    hc.options.xAxis.categories = list(day_average.index)
-    hc.options.series[0].data = list(day_average)
+    hc.options.title.text = 'Average Rating by Day'  # Cambia el título del gráfico
+    
+    # Configura los datos del gráfico
+    hc.options.xAxis.categories = list(day_average.index)  # Fechas en el eje X
+    hc.options.series[0].data = list(day_average)  # Promedios en el eje Y
 
     return wp
 
-
+# Ejecuta la aplicación en el puerto 8080
 jp.justpy(app, port=8080)
